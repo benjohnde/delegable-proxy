@@ -53,6 +53,8 @@ export class DelegableProxy {
 
   ensureRecursiveWiring(object) {
     const self = this
+    // TODO could use WeakSet for keeping track of objects, problem here is if one copy a whole "proxied" subtree into another object
+    // TODO does this actually work?
     if (object instanceof Proxy) {
       console.log(object, 'is Proxy, no further traverse')
       return
