@@ -33,6 +33,7 @@ function traverse(o) {
   }
 }
 
+// TODO need to work with WeakSet
 // traverse(mysetProxy)
 
 describe('bla', () => {
