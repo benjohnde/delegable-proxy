@@ -33,15 +33,21 @@ function traverse(o) {
   }
 }
 
-const WHOOPERINIO = function cb(action, sender) {
-  console.log('smells like someone just whooped')
-}
-
-const mysetProxy = new DelegableProxy(myset, WHOOPERINIO)
 // traverse(mysetProxy)
 
 describe('bla', () => {
-  it('Should blub', () => {
-    expect(true).to.be.true
+  it('Should blub', (done) => {
+    let actual = false
+    const WHOOPERINIO = function cb(action, sender) {
+      console.log('smells like someone just whooped')
+      actual = true
+    }
+    const mysetProxy = new DelegableProxy(myset, WHOOPERINIO)
+    mysetProxy.push({'barfoo': 'yeap'})
+
+    setTimeout(() => {
+      expect(actual).to.be.true
+      done()
+    }, 10)
   })
 })
