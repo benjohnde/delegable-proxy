@@ -8,25 +8,17 @@ For convenience sake we want to work with common lists and objects but track eve
 
 ## Important to note
 
-- Not very powerful yet.
 - No clue about performance yet.
 
 ## Usage
 
-Add the library
-
 ```bash
+# add the library
 yarn add delegable-proxy
-```
 
-Build the library
-
-```bash
+# build the library
 yarn build
-```
 
-Run the tests
-
-```bash
+# run the tests
 yarn test
 ```
