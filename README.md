@@ -2,6 +2,8 @@
 
 Multi-level deepened proxy, works sync.
 
+[![Build Status](https://travis-ci.org/benjohnde/delegable-proxy.svg?branch=master)](https://travis-ci.org/benjohnde/delegable-proxy)
+
 ## Main purpose
 
 For convenience sake we want to work with common lists and objects but keep track of every change to commit them to the underlying storage (in our case a CouchDB). `Object.observe()` and `Array.observe()` are pretty much the exact thing we want, but they are async and work via polling.
