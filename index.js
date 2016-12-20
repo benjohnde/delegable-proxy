@@ -63,6 +63,7 @@ var DelegableProxy = exports.DelegableProxy = function () {
           return true;
         },
         set: function set(target, property, value, receiver) {
+          var hasOldValue = target[property] !== undefined;
           // if key does not exist but value is an object, wrap it!
           if ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
             target[property] = relax(self, value);
@@ -71,7 +72,8 @@ var DelegableProxy = exports.DelegableProxy = function () {
           }
           // array pushes always triggers this method twice
           if (property !== 'length') {
-            self.notifyDelegate('mod', self.formatProperty(property));
+            var action = hasOldValue ? 'mod' : 'add';
+            self.notifyDelegate(action, self.formatProperty(property));
           }
           return true;
         }

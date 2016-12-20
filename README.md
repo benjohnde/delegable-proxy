@@ -10,9 +10,14 @@ For convenience sake we want to work with common lists and objects but track eve
 
 - Not very powerful yet.
 - No clue about performance yet.
-- Not released to NPM yet (may be in the near future).
 
 ## Usage
+
+Add the library
+
+```bash
+yarn add delegable-proxy
+```
 
 Build the library
 
