@@ -42,23 +42,21 @@ var DelegableProxy = exports.DelegableProxy = function () {
      * @param {proxyCallback} delegate Callback which is invoked for some actions.
      */
     value: function wire(object, delegate) {
-      if (object == null) {
-        throw new Error('Why would one use Proxy without a proper object to follow?');
-      }
-      if (typeof delegate !== 'function') {
-        throw new Error('Why would one use Proxy without a proper delegate function?');
-      }
       // do not play with references, create a clean clone of the whole data structure
       var obj = JSON.parse(JSON.stringify(object));
       return new DelegableProxy(obj, delegate);
     }
-
-    /*private*/
   }]);
 
   function DelegableProxy(object, delegate, index) {
     _classCallCheck(this, DelegableProxy);
 
+    if (object === null) {
+      throw new Error('Why would one use Proxy without a proper object to follow?');
+    }
+    if (typeof delegate !== 'function') {
+      throw new Error('Why would one use Proxy without a proper delegate function?');
+    }
     this.index = index !== undefined ? index : -1;
     this.delegate = delegate;
     this.handler = this.createHandler();
