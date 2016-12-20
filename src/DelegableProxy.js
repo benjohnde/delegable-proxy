@@ -20,11 +20,18 @@ export class DelegableProxy {
     if (typeof delegate !== 'function') {
       throw new Error('Why would one use Proxy without a proper delegate function?')
     }
+    const cloned = this.clone(object)
     this.index = (index !== undefined) ? index : -1
     this.delegate = delegate
     this.handler = this.createHandler()
-    this.ensureRecursiveWiring(object)
-    return new Proxy(object, this.handler)
+    this.wired = new WeakSet()
+    this.ensureRecursiveWiring(cloned)
+    return new Proxy(cloned, this.handler)
+  }
+
+  // do not play with references, create a clean clone of the whole data structure
+  clone(obj) {
+    return JSON.parse(JSON.stringify(obj))
   }
 
   createHandler() {
@@ -32,10 +39,11 @@ export class DelegableProxy {
     // return true to accept the changes
     return {
       deleteProperty: function(target, property) {
-        self.notifyDelegate('del', property)
+        self.notifyDelegate('del', self.formatProperty(property))
         return true
       },
       set: function(target, property, value, receiver) {
+        const hasOldValue = target[property] !== undefined
         // if key does not exist but value is an object, wrap it!
         if (typeof value === 'object') {
           target[property] = relax(self, value)
@@ -44,25 +52,39 @@ export class DelegableProxy {
         }
         // array pushes always triggers this method twice
         if (property !== 'length') {
-          self.notifyDelegate('mod', property)
+          const action = hasOldValue ? 'mod' : 'add'
+          self.notifyDelegate(action, self.formatProperty(property))
         }
         return true
       }
     }
   }
 
+  formatProperty(property) {
+    if (!this.isInt(property)) {
+      return -1
+    }
+    return parseInt(property)
+  }
+
+  isInt(string) {
+    return !isNaN(parseInt(string))
+  }
+
   ensureRecursiveWiring(object) {
-    const self = this
-    // TODO could use WeakSet for keeping track of objects, problem here is if one copy a whole "proxied" subtree into another object
-    // TODO does this actually work?
-    if (object instanceof Proxy) {
-      console.log(object, 'is Proxy, no further traverse')
+    if (this.wired.has(object)) {
+      console.log(object, 'is already wired, no further traverse')
       return
     }
+    this.wired.add(object)
+
+    // end condition
     if (typeof object !== 'object') {
-      // no further traversal
       return
     }
+
+    // go deeper
+    const self = this
     const keys = Object.keys(object)
     keys.forEach((k) => {
       const o = object[k]
@@ -71,7 +93,7 @@ export class DelegableProxy {
         return
       }
       // if key is numeric, pass the current index for locating the root object later on
-      if (self.isNumeric(k)) {
+      if (this.isInt(k)) {
         const i = keys.indexOf(k)
         object[k] = relax(self, o, i)
         return
@@ -91,10 +113,5 @@ export class DelegableProxy {
       return this.delegate(action, sender)
     }
     return this.delegate(action, this.index)
-  }
-
-  // @see http://stackoverflow.com/a/1830844
-  isNumeric(n) {
-    return !isNaN(parseFloat(n)) && isFinite(n)
   }
 }

@@ -1,8 +1,7 @@
 import { expect } from 'chai'
 import { DelegableProxy } from '../src/DelegableProxy'
 
-
-// actual test set
+// actual test data
 const myset = [
   {'foo': 'bar'},
   {'foo2': 'bar2'},
@@ -17,38 +16,44 @@ const myset = [
     }
   ]}
 ]
+const dummy = function cb(action, sender) {}
 
-function traverse(o) {
-  if (typeof o !== 'object') {
-    return
-  }
+describe('Basic operations', () => {
+  it('should wire the test set', () => {
+    const proxied = new DelegableProxy(myset, dummy)
+    expect(myset).to.deep.equal(proxied)
 
-  const isProxy = (o instanceof Proxy) // dont work
-  console.log('isProxy', isProxy)
-
-  for (var k in o) {
-    console.log('key', k)
-    console.log('object', o)
-    traverse(o[k])
-  }
-}
-
-// TODO need to work with WeakSet
-// traverse(mysetProxy)
-
-describe('bla', () => {
-  it('Should blub', (done) => {
-    let actual = false
-    const WHOOPERINIO = function cb(action, sender) {
-      console.log('smells like someone just whooped')
-      actual = true
-    }
-    const mysetProxy = new DelegableProxy(myset, WHOOPERINIO)
-    mysetProxy.push({'barfoo': 'yeap'})
-
-    setTimeout(() => {
-      expect(actual).to.be.true
+    proxied.push({'barfoo': 'yeap'})
+    expect(myset).to.not.deep.equal(proxied)
+  })
+  it('should notify delegate properly after pushing new', (done) => {
+    const delegate = function cb(action, sender) {
+      expect(action).to.be.a('string')
+      expect(action).to.equal('add')
+      expect(sender).to.equal(3)
       done()
-    }, 10)
+    }
+    const proxied = new DelegableProxy(myset, delegate)
+    proxied.push({'barfoo': 'yeap'})
+  })
+  it('should notify delegate properly after altering an entry', (done) => {
+    const delegate = function cb(action, sender) {
+      expect(action).to.be.a('string')
+      expect(action).to.equal('mod')
+      expect(sender).to.equal(2)
+      done()
+    }
+    const proxied = new DelegableProxy(myset, delegate)
+    proxied[2].ultimate[0].pew = 'POW!'
+  })
+  it('should notify delegate properly after deleting an entry', (done) => {
+    const delegate = function cb(action, sender) {
+      expect(action).to.be.a('string')
+      expect(action).to.equal('del')
+      expect(sender).to.equal(3)
+      done()
+    }
+    const proxied = new DelegableProxy(myset, delegate)
+    delete proxied[3]
   })
 })

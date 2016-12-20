@@ -12,8 +12,8 @@
     "mocha": "^3.2.0"
   },
   "scripts": {
-    "test": "mocha --ui qunit --compilers js:babel-register",
-    "build": "babel src --out-dir lib"
+    "test": "mocha --compilers js:babel-register",
+    "build": "babel src --out-file index.js"
   },
   "babel": {
     "presets": [
