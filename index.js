@@ -26,33 +26,48 @@ function relax(ref, obj, index) {
  */
 
 var DelegableProxy = exports.DelegableProxy = function () {
+  _createClass(DelegableProxy, null, [{
+    key: 'wire',
+
+    /**
+     * Callback which is invoked for each add/mode/del.
+     *
+     * @callback proxyCallback
+     * @param {string} action may be {del} or {modify} where as {modify} means edit or add.
+     * @param {number} sender resultant, this is currently the index of the root object, which was altered.
+     */
+
+    /**
+     * @param {object} object An object to proxy add/mod/del via callback method.
+     * @param {proxyCallback} delegate Callback which is invoked for some actions.
+     */
+    value: function wire(object, delegate) {
+      if (object == null) {
+        throw new Error('Why would one use Proxy without a proper object to follow?');
+      }
+      if (typeof delegate !== 'function') {
+        throw new Error('Why would one use Proxy without a proper delegate function?');
+      }
+      // do not play with references, create a clean clone of the whole data structure
+      var obj = JSON.parse(JSON.stringify(object));
+      return new DelegableProxy(obj, delegate);
+    }
+
+    /*private*/
+  }]);
+
   function DelegableProxy(object, delegate, index) {
     _classCallCheck(this, DelegableProxy);
 
-    if (object == null) {
-      throw new Error('Why would one use Proxy without a proper object to follow?');
-    }
-    if (typeof delegate !== 'function') {
-      throw new Error('Why would one use Proxy without a proper delegate function?');
-    }
-    var cloned = this.clone(object);
     this.index = index !== undefined ? index : -1;
     this.delegate = delegate;
     this.handler = this.createHandler();
     this.wired = new WeakSet();
-    this.ensureRecursiveWiring(cloned);
-    return new Proxy(cloned, this.handler);
+    this.ensureRecursiveWiring(object);
+    return new Proxy(object, this.handler);
   }
 
-  // do not play with references, create a clean clone of the whole data structure
-
-
   _createClass(DelegableProxy, [{
-    key: 'clone',
-    value: function clone(obj) {
-      return JSON.parse(JSON.stringify(obj));
-    }
-  }, {
     key: 'createHandler',
     value: function createHandler() {
       var self = this;
@@ -126,14 +141,6 @@ var DelegableProxy = exports.DelegableProxy = function () {
         object[k] = relax(self, o);
       });
     }
-
-    /**
-     * @param {string} action may be {del} or {modify} where as {modify} means edit or add.
-     * @param {number} sender resultant, this is currently the index of the root object, which was altered.
-     *
-     * TODO May replace this with proper JS Enum (after approval) or just use enumify.
-     */
-
   }, {
     key: 'notifyDelegate',
     value: function notifyDelegate(action, sender) {
