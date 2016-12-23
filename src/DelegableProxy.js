@@ -2,8 +2,8 @@
  * Small helper function to decouple from the derived object.
  */
 function relax(ref, obj, index) {
-  const delegate = function(action, sender) {
-    ref.notifyDelegate(action, sender)
+  const delegate = function(action, position) {
+    ref.notifyDelegate(action, position)
   }
   return new DelegableProxy(obj, delegate, index)
 }
@@ -17,18 +17,22 @@ export class DelegableProxy {
    * Callback which is invoked for each add/mode/del.
    *
    * @callback proxyCallback
-   * @param {string} action may be {del} or {modify} where as {modify} means edit or add.
-   * @param {number} sender resultant, this is currently the index of the root object, which was altered.
+   * @param {string} action may be one of {add, del, mod}.
+   * @param {number} position resultant, this is currently the index of the root object, which was altered.
+   * @param {boolean} shouldClone signals whether the incoming object should be cloned before wiring.
    */
 
   /**
    * @param {object} object An object to proxy add/mod/del via callback method.
    * @param {proxyCallback} delegate Callback which is invoked for some actions.
    */
-  static wire(object, delegate) {
-    // do not play with references, create a clean clone of the whole data structure
-    const obj = JSON.parse(JSON.stringify(object))
-    return new DelegableProxy(obj, delegate)
+  static wire(object, delegate, shouldClone) {
+    if (shouldClone) {
+      // do not play with references, create a clean clone of the whole data structure
+      const cloned = JSON.parse(JSON.stringify(object))
+      return new DelegableProxy(cloned, delegate)
+    }
+    return new DelegableProxy(object, delegate)
   }
 
   constructor(object, delegate, index) {
@@ -72,17 +76,6 @@ export class DelegableProxy {
     }
   }
 
-  formatProperty(property) {
-    if (!this.isInt(property)) {
-      return -1
-    }
-    return parseInt(property)
-  }
-
-  isInt(string) {
-    return !isNaN(parseInt(string))
-  }
-
   ensureRecursiveWiring(object) {
     if (this.wired.has(object)) {
       console.log(object, 'is already wired, no further traverse')
@@ -114,9 +107,23 @@ export class DelegableProxy {
     })
   }
 
-  notifyDelegate(action, sender) {
+  formatProperty(property) {
+    if (!this.isInt(property)) {
+      return -1
+    }
+    return parseInt(property)
+  }
+
+  isInt(string) {
+    return !isNaN(parseInt(string))
+  }
+
+  /**
+   * @see {proxyCallback} Callback which is invoked for some actions.
+   */
+  notifyDelegate(action, position) {
     if (this.index < 0) {
-      return this.delegate(action, sender)
+      return this.delegate(action, position)
     }
     return this.delegate(action, this.index)
   }
