@@ -1,12 +1,4 @@
-/**
- * Small helper function to decouple from the derived object.
- */
-function relax(ref, obj, index) {
-  const delegate = function(action, position) {
-    ref.notifyDelegate(action, position)
-  }
-  return new DelegableProxy(obj, delegate, index)
-}
+import { isInt } from './Helper'
 
 /**
  * DelegableProxy, multi-level deepened proxy.
@@ -25,14 +17,27 @@ export default class DelegableProxy {
   /**
    * @param {object} object An object to proxy add/mod/del via callback method.
    * @param {proxyCallback} delegate Callback which is invoked for some actions.
+   * @param {boolean} shouldClone create a clean clone of the whole data structure
    */
   static wire(object, delegate, shouldClone) {
     if (shouldClone) {
-      // do not play with references, create a clean clone of the whole data structure
       const cloned = JSON.parse(JSON.stringify(object))
       return new DelegableProxy(cloned, delegate)
     }
     return new DelegableProxy(object, delegate)
+  }
+
+  /**
+   * Small helper function to decouple from the derived object.
+   * @param {object} ref mother object to invoke {proxyCallback}
+   * @param {object} obj to wire
+   * @param {integer} index [-1]
+   */
+  static relax(ref, obj, index) {
+    const delegate = function(action, position) {
+      ref.notifyDelegate(action, position)
+    }
+    return new DelegableProxy(obj, delegate, index)
   }
 
   constructor(object, delegate, index) {
@@ -62,7 +67,7 @@ export default class DelegableProxy {
         const hasOldValue = target[property] !== undefined
         // if key does not exist but value is an object, wrap it!
         if (typeof value === 'object') {
-          target[property] = relax(self, value)
+          target[property] = DelegableProxy.relax(self, value)
         } else {
           target[property] = value
         }
@@ -98,28 +103,29 @@ export default class DelegableProxy {
         return
       }
       // if key is numeric, pass the current index for locating the root object later on
-      if (this.isInt(k)) {
+      if (isInt(k)) {
         const i = keys.indexOf(k)
-        object[k] = relax(self, o, i)
+        object[k] = DelegableProxy.relax(self, o, i)
         return
       }
-      object[k] = relax(self, o)
+      object[k] = DelegableProxy.relax(self, o)
     })
   }
 
+  /**
+   * As we only want to track indices of an array and not keys, short check.
+   * @param {object} property
+   * @returns -1 or index
+   */
   formatProperty(property) {
-    if (!this.isInt(property)) {
+    if (!isInt(property)) {
       return -1
     }
     return parseInt(property)
   }
 
-  isInt(string) {
-    return !isNaN(parseInt(string))
-  }
-
   /**
-   * @see {proxyCallback} Callback which is invoked for some actions.
+   * @see {proxyCallback} Callback, which is invoked for some actions.
    */
   notifyDelegate(action, position) {
     if (this.index < 0) {

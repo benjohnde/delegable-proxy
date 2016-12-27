@@ -2,7 +2,6 @@ import { expect } from 'chai'
 import fs from 'fs'
 import DelegableProxy from '../src/DelegableProxy'
 
-
 // noop handler
 const dummy = function cb(action, sender) {}
 
