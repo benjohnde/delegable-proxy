@@ -25,7 +25,7 @@ function relax(ref, obj, index) {
  * If any of the underlying object is modified, the primary delegate is invoked.
  */
 
-var DelegableProxy = exports.DelegableProxy = function () {
+var DelegableProxy = function () {
   _createClass(DelegableProxy, null, [{
     key: 'wire',
 
@@ -160,3 +160,5 @@ var DelegableProxy = exports.DelegableProxy = function () {
 
   return DelegableProxy;
 }();
+
+exports.default = DelegableProxy;
