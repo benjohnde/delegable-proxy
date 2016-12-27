@@ -8,23 +8,14 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+var _Helper = require('./Helper');
 
-/**
- * Small helper function to decouple from the derived object.
- */
-function relax(ref, obj, index) {
-  var delegate = function delegate(action, position) {
-    ref.notifyDelegate(action, position);
-  };
-  return new DelegableProxy(obj, delegate, index);
-}
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 /**
  * DelegableProxy, multi-level deepened proxy.
  * If any of the underlying object is modified, the primary delegate is invoked.
  */
-
 var DelegableProxy = function () {
   _createClass(DelegableProxy, null, [{
     key: 'wire',
@@ -41,14 +32,30 @@ var DelegableProxy = function () {
     /**
      * @param {object} object An object to proxy add/mod/del via callback method.
      * @param {proxyCallback} delegate Callback which is invoked for some actions.
+     * @param {boolean} shouldClone create a clean clone of the whole data structure
      */
     value: function wire(object, delegate, shouldClone) {
       if (shouldClone) {
-        // do not play with references, create a clean clone of the whole data structure
         var cloned = JSON.parse(JSON.stringify(object));
         return new DelegableProxy(cloned, delegate);
       }
       return new DelegableProxy(object, delegate);
+    }
+
+    /**
+     * Small helper function to decouple from the derived object.
+     * @param {object} ref mother object to invoke {proxyCallback}
+     * @param {object} obj to wire
+     * @param {integer} index [-1]
+     */
+
+  }, {
+    key: 'relax',
+    value: function relax(ref, obj, index) {
+      var delegate = function delegate(action, position) {
+        ref.notifyDelegate(action, position);
+      };
+      return new DelegableProxy(obj, delegate, index);
     }
   }]);
 
@@ -83,7 +90,7 @@ var DelegableProxy = function () {
           var hasOldValue = target[property] !== undefined;
           // if key does not exist but value is an object, wrap it!
           if ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
-            target[property] = relax(self, value);
+            target[property] = DelegableProxy.relax(self, value);
           } else {
             target[property] = value;
           }
@@ -99,8 +106,6 @@ var DelegableProxy = function () {
   }, {
     key: 'ensureRecursiveWiring',
     value: function ensureRecursiveWiring(object) {
-      var _this = this;
-
       if (this.wired.has(object)) {
         console.log(object, 'is already wired, no further traverse');
         return;
@@ -122,30 +127,32 @@ var DelegableProxy = function () {
           return;
         }
         // if key is numeric, pass the current index for locating the root object later on
-        if (_this.isInt(k)) {
+        if ((0, _Helper.isInt)(k)) {
           var i = keys.indexOf(k);
-          object[k] = relax(self, o, i);
+          object[k] = DelegableProxy.relax(self, o, i);
           return;
         }
-        object[k] = relax(self, o);
+        object[k] = DelegableProxy.relax(self, o);
       });
     }
+
+    /**
+     * As we only want to track indices of an array and not keys, short check.
+     * @param {object} property
+     * @returns -1 or index
+     */
+
   }, {
     key: 'formatProperty',
     value: function formatProperty(property) {
-      if (!this.isInt(property)) {
+      if (!(0, _Helper.isInt)(property)) {
         return -1;
       }
       return parseInt(property);
     }
-  }, {
-    key: 'isInt',
-    value: function isInt(string) {
-      return !isNaN(parseInt(string));
-    }
 
     /**
-     * @see {proxyCallback} Callback which is invoked for some actions.
+     * @see {proxyCallback} Callback, which is invoked for some actions.
      */
 
   }, {
@@ -162,3 +169,17 @@ var DelegableProxy = function () {
 }();
 
 exports.default = DelegableProxy;
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.isInt = isInt;
+/**
+ * Small helper for checking if input is an Integer {number}.
+ * @param {object} object to check
+ * @see http://stackoverflow.com/a/14794066
+ */
+function isInt(object) {
+  return !isNaN(object) && !isNaN(parseInt(object)) && parseInt(Number(object)) == object;
+}
