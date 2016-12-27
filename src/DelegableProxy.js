@@ -12,7 +12,7 @@ function relax(ref, obj, index) {
  * DelegableProxy, multi-level deepened proxy.
  * If any of the underlying object is modified, the primary delegate is invoked.
  */
-export class DelegableProxy {
+export default class DelegableProxy {
   /**
    * Callback which is invoked for each add/mode/del.
    *

@@ -13,6 +13,8 @@ The proxy returns the type of mutation (add, del, mod) and which position (root 
 ## Example
 
 ```javascript
+import DelegableProxy from 'delegable-proxy'
+
 const example = [{'message': 'hello world'}]
 const data = DelegableProxy.wire(example, (action, pos) => {
   console.log(action, pos)
