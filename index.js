@@ -8,14 +8,22 @@ var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _Helper = require('./Helper');
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+/**
+ * Small helper for checking if input is an Integer {number}.
+ * @param {object} object to check
+ * @see http://stackoverflow.com/a/14794066
+ */
+function isInt(object) {
+  return !isNaN(object) && !isNaN(parseInt(object)) && parseInt(Number(object)) == object;
+}
 
 /**
  * DelegableProxy, multi-level deepened proxy.
  * If any of the underlying object is modified, the primary delegate is invoked.
  */
+
 var DelegableProxy = function () {
   _createClass(DelegableProxy, null, [{
     key: 'wire',
@@ -136,7 +144,7 @@ var DelegableProxy = function () {
           return;
         }
         // if key is numeric, pass the current index for locating the root object later on
-        if ((0, _Helper.isInt)(k)) {
+        if (isInt(k)) {
           var i = keys.indexOf(k);
           object[k] = DelegableProxy.relax(self, o, i);
           return;
@@ -154,7 +162,7 @@ var DelegableProxy = function () {
   }, {
     key: 'formatProperty',
     value: function formatProperty(property) {
-      if (!(0, _Helper.isInt)(property)) {
+      if (!isInt(property)) {
         return -1;
       }
       return parseInt(property);
@@ -178,17 +186,3 @@ var DelegableProxy = function () {
 }();
 
 exports.default = DelegableProxy;
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-exports.isInt = isInt;
-/**
- * Small helper for checking if input is an Integer {number}.
- * @param {object} object to check
- * @see http://stackoverflow.com/a/14794066
- */
-function isInt(object) {
-  return !isNaN(object) && !isNaN(parseInt(object)) && parseInt(Number(object)) == object;
-}

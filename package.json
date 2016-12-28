@@ -1,6 +1,6 @@
 {
   "name": "delegable-proxy",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "main": "index.js",
   "author": "Ben John <github@benjohn.de>",
   "license": "MIT",
@@ -9,11 +9,12 @@
     "babel-preset-es2015": "^6.18.0",
     "babel-register": "^6.18.0",
     "chai": "^3.5.0",
-    "mocha": "^3.2.0"
+    "mocha": "^3.2.0",
+    "rollup": "^0.38.1"
   },
   "scripts": {
     "test": "mocha --compilers js:babel-register",
-    "build": "babel src --out-file index.js"
+    "build": "rollup -i src/DelegableProxy.js -o index.js; babel index.js --out-file index.js"
   },
   "babel": {
     "presets": [
