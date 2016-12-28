@@ -8,6 +8,9 @@ Multi-level deepened proxy, works sync.
 
 For convenience sake we want to work with common lists and objects but keep track of every change to commit them to the underlying storage.
 `Object.observe()` and `Array.observe()` are pretty much the exact thing we want, but both work async via polling.
+
+In combination with for instance Vue/Vuex it can be used to create a bi-directional data flow `[UI] <-> [Store] <-> [DB]`.
+
 The proxy returns the type of mutation (add, del, mod) and which position (root object) is affected.
 
 ## Example
