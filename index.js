@@ -94,11 +94,20 @@ var DelegableProxy = function () {
           } else {
             target[property] = value;
           }
+
           // array pushes always triggers this method twice
-          if (property !== 'length') {
-            var action = hasOldValue ? 'mod' : 'add';
-            self.notifyDelegate(action, self.formatProperty(property));
+          if (property === 'length') {
+            return true;
           }
+          // object changes (for instance added new method) should not be delegated
+          if (property === '__proto__') {
+            return true;
+          }
+
+          // notify delegate
+          var action = hasOldValue ? 'mod' : 'add';
+          self.notifyDelegate(action, self.formatProperty(property));
+
           return true;
         }
       };
