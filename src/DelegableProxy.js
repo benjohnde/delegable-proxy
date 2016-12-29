@@ -105,7 +105,7 @@ export default class DelegableProxy {
     // go deeper
     const self = this
     const keys = Object.keys(object)
-    keys.forEach((k) => {
+    keys.forEach(k => {
       const o = object[k]
       // not eligible for Proxy
       if (typeof o !== 'object') {
