@@ -24,7 +24,7 @@ describe('Basic operations', () => {
       done()
     }
     const proxied = DelegableProxy.wire(dataset, delegate)
-    proxied.push({'barfoo': 'yeap'})
+    proxied.push({'barfoo': 'yeap', 'bar': ['1', '2', '3']})
   })
   it('should not alter degenerated set', () => {
     const myset = JSON.parse(JSON.stringify(dataset))
