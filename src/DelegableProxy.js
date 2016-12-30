@@ -1,4 +1,4 @@
-import { isInt } from './Helper'
+import { isInt } from "./Helper"
 
 /**
  * DelegableProxy, multi-level deepened proxy.
@@ -42,10 +42,10 @@ export default class DelegableProxy {
 
   constructor(object, delegate, index) {
     if (object === null) {
-      throw new Error('Why would one use Proxy without a proper object to follow?')
+      throw new Error("Why would one use Proxy without a proper object to follow?")
     }
-    if (typeof delegate !== 'function') {
-      throw new Error('Why would one use Proxy without a proper delegate function?')
+    if (typeof delegate !== "function") {
+      throw new Error("Why would one use Proxy without a proper delegate function?")
     }
     this.index = (index !== undefined) ? index : -1
     this.delegate = delegate
@@ -60,55 +60,59 @@ export default class DelegableProxy {
     // return true to accept the changes
     return {
       deleteProperty: function(target, property) {
-        self.notifyDelegate('del', self.formatProperty(property))
+        self.notifyDelegate("del", self.formatProperty(property))
         return true
       },
       set: function(target, property, value, receiver) {
         const hasOldValue = target[property] !== undefined
         // if key does not exist but value is an object, wrap it!
-        if (typeof value === 'object') {
+        if (typeof value === "object") {
           target[property] = DelegableProxy.relax(self, value)
         } else {
           target[property] = value
         }
-
-        // array pushes always triggers this method twice
-        if (property === 'length') {
-          return true;
+        // Array pushes always triggers this method twice
+        if (property === "length") {
+          return true
         }
-        // object changes (for instance added new method) should not be delegated
-        if (property === '__proto__') {
-          return true;
+        // Object changes (for instance added new method) should not be delegated
+        if (property === "__proto__") {
+          return true
         }
-
+        // Ensure skipping delegation for Vue.js observables
+        if (target.hasOwnProperty("__ob__")) {
+          return true
+        }
+        if (value.hasOwnProperty("__ob__")) {
+          return true
+        }
         // notify delegate
-        const action = hasOldValue ? 'mod' : 'add';
-        self.notifyDelegate(action, self.formatProperty(property));
-
-        return true;
+        const action = hasOldValue ? "mod" : "add"
+        self.notifyDelegate(action, self.formatProperty(property))
+        return true
       }
     }
   }
 
   ensureRecursiveWiring(object) {
     if (this.wired.has(object)) {
-      console.log(object, 'is already wired, no further traverse')
+      console.log(object, "is already wired, no further traverse")
       return
     }
     this.wired.add(object)
-
-    // end condition
-    if (typeof object !== 'object') {
+    // End condition
+    const isObject = typeof object !== "object"
+    const isVueObservable = object.hasOwnProperty("__ob__")
+    if (isObject ||isVueObservable) {
       return
     }
-
     // go deeper
     const self = this
     const keys = Object.keys(object)
     keys.forEach(k => {
       const o = object[k]
       // not eligible for Proxy
-      if (typeof o !== 'object') {
+      if (typeof o !== "object") {
         return
       }
       // if key is numeric, pass the current index for locating the root object later on
