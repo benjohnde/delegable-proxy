@@ -29,15 +29,6 @@ var DelegableProxy = function () {
     key: "wire",
 
     /**
-     * Callback which is invoked for each add/mode/del.
-     *
-     * @callback proxyCallback
-     * @param {string} action may be one of {add, del, mod}.
-     * @param {number} position resultant, this is currently the index of the root object, which was altered.
-     * @param {boolean} shouldClone signals whether the incoming object should be cloned before wiring.
-     */
-
-    /**
      * @param {object} object An object to proxy add/mod/del via callback method.
      * @param {proxyCallback} delegate Callback which is invoked for some actions.
      * @param {boolean} shouldClone create a clean clone of the whole data structure
@@ -61,7 +52,7 @@ var DelegableProxy = function () {
     key: "relax",
     value: function relax(ref, obj, index) {
       var delegate = function delegate(action, position) {
-        ref.notifyDelegate(action, position);
+        ref.notifyDelegate(action, position, false);
       };
       return new DelegableProxy(obj, delegate, index);
     }
@@ -91,7 +82,7 @@ var DelegableProxy = function () {
       // return true to accept the changes
       return {
         deleteProperty: function deleteProperty(target, property) {
-          self.notifyDelegate("del", self.formatProperty(property));
+          self.notifyDelegate("del", self.formatProperty(property), true);
           return true;
         },
         set: function set(target, property, value, receiver) {
@@ -119,7 +110,7 @@ var DelegableProxy = function () {
           }
           // notify delegate
           var action = hasOldValue ? "mod" : "add";
-          self.notifyDelegate(action, self.formatProperty(property));
+          self.notifyDelegate(action, self.formatProperty(property), true);
           return true;
         }
       };
@@ -132,7 +123,7 @@ var DelegableProxy = function () {
         return;
       }
       this.wired.add(object);
-      // End condition
+      // end condition
       var isObject = (typeof object === "undefined" ? "undefined" : _typeof(object)) !== "object";
       var isVueObservable = object.hasOwnProperty("__ob__");
       if (isObject || isVueObservable) {
@@ -173,12 +164,20 @@ var DelegableProxy = function () {
     }
 
     /**
-     * @see {proxyCallback} Callback, which is invoked for some actions.
+     * Callback which is invoked for each add/mode/del.
+     *
+     * @callback proxyCallback
+     * @param {string} action may be one of {add, del, mod}.
+     * @param {number} position resultant, this is currently the index of the root object, which was altered.
+     * @param {boolean} isRootObject whether the sender is the root object or not
      */
 
   }, {
     key: "notifyDelegate",
-    value: function notifyDelegate(action, position) {
+    value: function notifyDelegate(action, position, isRootObject) {
+      if (!isRootObject) {
+        action = 'mod';
+      }
       if (this.index < 0) {
         return this.delegate(action, position);
       }
