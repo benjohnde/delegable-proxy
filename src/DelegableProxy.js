@@ -6,15 +6,6 @@ import { isInt } from "./Helper"
  */
 export default class DelegableProxy {
   /**
-   * Callback which is invoked for each add/mode/del.
-   *
-   * @callback proxyCallback
-   * @param {string} action may be one of {add, del, mod}.
-   * @param {number} position resultant, this is currently the index of the root object, which was altered.
-   * @param {boolean} isRootObject whether the sender is the root object or not
-   */
-   
-  /**
    * @param {object} object An object to proxy add/mod/del via callback method.
    * @param {proxyCallback} delegate Callback which is invoked for some actions.
    * @param {boolean} shouldClone create a clean clone of the whole data structure
@@ -137,6 +128,14 @@ export default class DelegableProxy {
     return parseInt(property)
   }
 
+  /**
+   * Callback which is invoked for each add/mode/del.
+   *
+   * @callback proxyCallback
+   * @param {string} action may be one of {add, del, mod}.
+   * @param {number} position resultant, this is currently the index of the root object, which was altered.
+   * @param {boolean} isRootObject whether the sender is the root object or not
+   */
   notifyDelegate(action, position, isRootObject) {
     if (!isRootObject) {
       action = 'mod'
