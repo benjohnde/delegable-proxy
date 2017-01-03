@@ -11,9 +11,9 @@ export default class DelegableProxy {
    * @callback proxyCallback
    * @param {string} action may be one of {add, del, mod}.
    * @param {number} position resultant, this is currently the index of the root object, which was altered.
-   * @param {boolean} shouldClone signals whether the incoming object should be cloned before wiring.
+   * @param {boolean} isRootObject whether the sender is the root object or not
    */
-
+   
   /**
    * @param {object} object An object to proxy add/mod/del via callback method.
    * @param {proxyCallback} delegate Callback which is invoked for some actions.
@@ -35,7 +35,7 @@ export default class DelegableProxy {
    */
   static relax(ref, obj, index) {
     const delegate = function(action, position) {
-      ref.notifyDelegate(action, position)
+      ref.notifyDelegate(action, position, false)
     }
     return new DelegableProxy(obj, delegate, index)
   }
@@ -60,7 +60,7 @@ export default class DelegableProxy {
     // return true to accept the changes
     return {
       deleteProperty: function(target, property) {
-        self.notifyDelegate("del", self.formatProperty(property))
+        self.notifyDelegate("del", self.formatProperty(property), true)
         return true
       },
       set: function(target, property, value, receiver) {
@@ -88,7 +88,7 @@ export default class DelegableProxy {
         }
         // notify delegate
         const action = hasOldValue ? "mod" : "add"
-        self.notifyDelegate(action, self.formatProperty(property))
+        self.notifyDelegate(action, self.formatProperty(property), true)
         return true
       }
     }
@@ -100,10 +100,10 @@ export default class DelegableProxy {
       return
     }
     this.wired.add(object)
-    // End condition
+    // end condition
     const isObject = typeof object !== "object"
     const isVueObservable = object.hasOwnProperty("__ob__")
-    if (isObject ||isVueObservable) {
+    if (isObject || isVueObservable) {
       return
     }
     // go deeper
@@ -137,10 +137,10 @@ export default class DelegableProxy {
     return parseInt(property)
   }
 
-  /**
-   * @see {proxyCallback} Callback, which is invoked for some actions.
-   */
-  notifyDelegate(action, position) {
+  notifyDelegate(action, position, isRootObject) {
+    if (!isRootObject) {
+      action = 'mod'
+    }
     if (this.index < 0) {
       return this.delegate(action, position)
     }
