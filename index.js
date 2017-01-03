@@ -36,9 +36,9 @@ var DelegableProxy = function () {
     value: function wire(object, delegate, shouldClone) {
       if (shouldClone) {
         var cloned = JSON.parse(JSON.stringify(object));
-        return new DelegableProxy(cloned, delegate);
+        return new DelegableProxy(cloned, delegate, true);
       }
-      return new DelegableProxy(object, delegate);
+      return new DelegableProxy(object, delegate, true);
     }
 
     /**
@@ -46,19 +46,20 @@ var DelegableProxy = function () {
      * @param {object} ref mother object to invoke {proxyCallback}
      * @param {object} obj to wire
      * @param {integer} index [-1]
+     * @param {boolean} isRootObject whether the sender is the root object or not
      */
 
   }, {
     key: "relax",
     value: function relax(ref, obj, index) {
-      var delegate = function delegate(action, position) {
-        ref.notifyDelegate(action, position, false);
+      var delegate = function delegate(action, position, isRootObject) {
+        ref.notifyDelegate(action, position, isRootObject);
       };
-      return new DelegableProxy(obj, delegate, index);
+      return new DelegableProxy(obj, delegate, false, index);
     }
   }]);
 
-  function DelegableProxy(object, delegate, index) {
+  function DelegableProxy(object, delegate, isRootObject, index) {
     _classCallCheck(this, DelegableProxy);
 
     if (object === null) {
@@ -67,6 +68,7 @@ var DelegableProxy = function () {
     if (typeof delegate !== "function") {
       throw new Error("Why would one use Proxy without a proper delegate function?");
     }
+    this.isRootObject = isRootObject || false;
     this.index = index !== undefined ? index : -1;
     this.delegate = delegate;
     this.handler = this.createHandler();
@@ -110,7 +112,7 @@ var DelegableProxy = function () {
           }
           // notify delegate
           var action = hasOldValue ? "mod" : "add";
-          self.notifyDelegate(action, self.formatProperty(property), true);
+          self.notifyDelegate(action, self.formatProperty(property), self.isRootObject);
           return true;
         }
       };
@@ -179,9 +181,9 @@ var DelegableProxy = function () {
         action = 'mod';
       }
       if (this.index < 0) {
-        return this.delegate(action, position);
+        return this.delegate(action, position, isRootObject);
       }
-      return this.delegate(action, this.index);
+      return this.delegate(action, this.index, isRootObject);
     }
   }]);
 

@@ -13,9 +13,9 @@ export default class DelegableProxy {
   static wire(object, delegate, shouldClone) {
     if (shouldClone) {
       const cloned = JSON.parse(JSON.stringify(object))
-      return new DelegableProxy(cloned, delegate)
+      return new DelegableProxy(cloned, delegate, true)
     }
-    return new DelegableProxy(object, delegate)
+    return new DelegableProxy(object, delegate, true)
   }
 
   /**
@@ -23,21 +23,23 @@ export default class DelegableProxy {
    * @param {object} ref mother object to invoke {proxyCallback}
    * @param {object} obj to wire
    * @param {integer} index [-1]
+   * @param {boolean} isRootObject whether the sender is the root object or not
    */
   static relax(ref, obj, index) {
-    const delegate = function(action, position) {
-      ref.notifyDelegate(action, position, false)
+    const delegate = function(action, position, isRootObject) {
+      ref.notifyDelegate(action, position, isRootObject)
     }
-    return new DelegableProxy(obj, delegate, index)
+    return new DelegableProxy(obj, delegate, false, index)
   }
 
-  constructor(object, delegate, index) {
+  constructor(object, delegate, isRootObject, index) {
     if (object === null) {
       throw new Error("Why would one use Proxy without a proper object to follow?")
     }
     if (typeof delegate !== "function") {
       throw new Error("Why would one use Proxy without a proper delegate function?")
     }
+    this.isRootObject = isRootObject || false
     this.index = (index !== undefined) ? index : -1
     this.delegate = delegate
     this.handler = this.createHandler()
@@ -79,7 +81,7 @@ export default class DelegableProxy {
         }
         // notify delegate
         const action = hasOldValue ? "mod" : "add"
-        self.notifyDelegate(action, self.formatProperty(property), true)
+        self.notifyDelegate(action, self.formatProperty(property), self.isRootObject)
         return true
       }
     }
@@ -141,8 +143,8 @@ export default class DelegableProxy {
       action = 'mod'
     }
     if (this.index < 0) {
-      return this.delegate(action, position)
+      return this.delegate(action, position, isRootObject)
     }
-    return this.delegate(action, this.index)
+    return this.delegate(action, this.index, isRootObject)
   }
 }
