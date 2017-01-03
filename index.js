@@ -36,9 +36,9 @@ var DelegableProxy = function () {
     value: function wire(object, delegate, shouldClone) {
       if (shouldClone) {
         var cloned = JSON.parse(JSON.stringify(object));
-        return new DelegableProxy(cloned, delegate, true);
+        return new DelegableProxy(cloned, delegate);
       }
-      return new DelegableProxy(object, delegate, true);
+      return new DelegableProxy(object, delegate);
     }
 
     /**
@@ -52,14 +52,14 @@ var DelegableProxy = function () {
   }, {
     key: "relax",
     value: function relax(ref, obj, index) {
-      var delegate = function delegate(action, position, isRootObject) {
-        ref.notifyDelegate(action, position, isRootObject);
+      var delegate = function delegate(action, position) {
+        ref.notifyDelegate(action, position, false);
       };
-      return new DelegableProxy(obj, delegate, false, index);
+      return new DelegableProxy(obj, delegate, index);
     }
   }]);
 
-  function DelegableProxy(object, delegate, isRootObject, index) {
+  function DelegableProxy(object, delegate, index) {
     _classCallCheck(this, DelegableProxy);
 
     if (object === null) {
@@ -68,7 +68,6 @@ var DelegableProxy = function () {
     if (typeof delegate !== "function") {
       throw new Error("Why would one use Proxy without a proper delegate function?");
     }
-    this.isRootObject = isRootObject || false;
     this.index = index !== undefined ? index : -1;
     this.delegate = delegate;
     this.handler = this.createHandler();
@@ -103,16 +102,9 @@ var DelegableProxy = function () {
           if (property === "__proto__") {
             return true;
           }
-          // Ensure skipping delegation for Vue.js observables
-          if (target.hasOwnProperty("__ob__")) {
-            return true;
-          }
-          if (value.hasOwnProperty("__ob__")) {
-            return true;
-          }
           // notify delegate
           var action = hasOldValue ? "mod" : "add";
-          self.notifyDelegate(action, self.formatProperty(property), self.isRootObject);
+          self.notifyDelegate(action, self.formatProperty(property), true);
           return true;
         }
       };

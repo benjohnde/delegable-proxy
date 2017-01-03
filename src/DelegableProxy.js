@@ -13,9 +13,9 @@ export default class DelegableProxy {
   static wire(object, delegate, shouldClone) {
     if (shouldClone) {
       const cloned = JSON.parse(JSON.stringify(object))
-      return new DelegableProxy(cloned, delegate, true)
+      return new DelegableProxy(cloned, delegate)
     }
-    return new DelegableProxy(object, delegate, true)
+    return new DelegableProxy(object, delegate)
   }
 
   /**
@@ -26,20 +26,19 @@ export default class DelegableProxy {
    * @param {boolean} isRootObject whether the sender is the root object or not
    */
   static relax(ref, obj, index) {
-    const delegate = function(action, position, isRootObject) {
-      ref.notifyDelegate(action, position, isRootObject)
+    const delegate = function(action, position) {
+      ref.notifyDelegate(action, position, false)
     }
-    return new DelegableProxy(obj, delegate, false, index)
+    return new DelegableProxy(obj, delegate, index)
   }
 
-  constructor(object, delegate, isRootObject, index) {
+  constructor(object, delegate, index) {
     if (object === null) {
       throw new Error("Why would one use Proxy without a proper object to follow?")
     }
     if (typeof delegate !== "function") {
       throw new Error("Why would one use Proxy without a proper delegate function?")
     }
-    this.isRootObject = isRootObject || false
     this.index = (index !== undefined) ? index : -1
     this.delegate = delegate
     this.handler = this.createHandler()
@@ -72,16 +71,9 @@ export default class DelegableProxy {
         if (property === "__proto__") {
           return true
         }
-        // Ensure skipping delegation for Vue.js observables
-        if (target.hasOwnProperty("__ob__")) {
-          return true
-        }
-        if (value.hasOwnProperty("__ob__")) {
-          return true
-        }
         // notify delegate
         const action = hasOldValue ? "mod" : "add"
-        self.notifyDelegate(action, self.formatProperty(property), self.isRootObject)
+        self.notifyDelegate(action, self.formatProperty(property), true)
         return true
       }
     }
