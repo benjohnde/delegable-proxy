@@ -23,6 +23,10 @@ data.push({'message': 'hi there!'})
 data.push({'message': 'knock knock!'})
 ```
 
+## RunKit
+
+https://runkit.com/586ca4b68acd620014d54362/586ca4b68acd620014d54363
+
 ## Usage
 
 ```bash
