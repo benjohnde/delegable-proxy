@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 Object.defineProperty(exports, "__esModule", {
   value: true
@@ -26,7 +26,7 @@ function isInt(object) {
 
 var DelegableProxy = function () {
   _createClass(DelegableProxy, null, [{
-    key: "wire",
+    key: 'wire',
 
     /**
      * @param {object} object An object to proxy add/mod/del via callback method.
@@ -50,7 +50,7 @@ var DelegableProxy = function () {
      */
 
   }, {
-    key: "relax",
+    key: 'relax',
     value: function relax(ref, obj, index) {
       var delegate = function delegate(action, position) {
         ref.notifyDelegate(action, position, false);
@@ -63,10 +63,10 @@ var DelegableProxy = function () {
     _classCallCheck(this, DelegableProxy);
 
     if (object === null) {
-      throw new Error("Why would one use Proxy without a proper object to follow?");
+      throw new Error('Why would one use Proxy without a proper object to follow?');
     }
-    if (typeof delegate !== "function") {
-      throw new Error("Why would one use Proxy without a proper delegate function?");
+    if (typeof delegate !== 'function') {
+      throw new Error('Why would one use Proxy without a proper delegate function?');
     }
     this.index = index !== undefined ? index : -1;
     this.delegate = delegate;
@@ -77,50 +77,49 @@ var DelegableProxy = function () {
   }
 
   _createClass(DelegableProxy, [{
-    key: "createHandler",
+    key: 'createHandler',
     value: function createHandler() {
       var self = this;
       // return true to accept the changes
       return {
         deleteProperty: function deleteProperty(target, property) {
-          self.notifyDelegate("del", self.formatProperty(property), true);
+          self.notifyDelegate('del', self.formatProperty(property), true);
           return true;
         },
         set: function set(target, property, value, receiver) {
           var hasOldValue = target[property] !== undefined;
           // if key does not exist but value is an object, wrap it!
-          if ((typeof value === "undefined" ? "undefined" : _typeof(value)) === "object") {
+          if ((typeof value === 'undefined' ? 'undefined' : _typeof(value)) === 'object') {
             target[property] = DelegableProxy.relax(self, value);
           } else {
             target[property] = value;
           }
-          // Array pushes always triggers this method twice
-          if (property === "length") {
+          // array pushes always triggers this method twice
+          if (property === 'length') {
             return true;
           }
-          // Object changes (for instance added new method) should not be delegated
-          if (property === "__proto__") {
+          // object changes (for instance added new method) should not be delegated
+          if (property === '__proto__') {
             return true;
           }
           // notify delegate
-          var action = hasOldValue ? "mod" : "add";
+          var action = hasOldValue ? 'mod' : 'add';
           self.notifyDelegate(action, self.formatProperty(property), true);
           return true;
         }
       };
     }
   }, {
-    key: "ensureRecursiveWiring",
+    key: 'ensureRecursiveWiring',
     value: function ensureRecursiveWiring(object) {
       if (this.wired.has(object)) {
-        console.log(object, "is already wired, no further traverse");
+        console.log(object, 'is already wired, no further traverse');
         return;
       }
       this.wired.add(object);
       // end condition
-      var isObject = (typeof object === "undefined" ? "undefined" : _typeof(object)) !== "object";
-      var isVueObservable = object.hasOwnProperty("__ob__");
-      if (isObject || isVueObservable) {
+      var isObject = (typeof object === 'undefined' ? 'undefined' : _typeof(object)) !== 'object';
+      if (isObject) {
         return;
       }
       // go deeper
@@ -129,7 +128,7 @@ var DelegableProxy = function () {
       keys.forEach(function (k) {
         var o = object[k];
         // not eligible for Proxy
-        if ((typeof o === "undefined" ? "undefined" : _typeof(o)) !== "object") {
+        if ((typeof o === 'undefined' ? 'undefined' : _typeof(o)) !== 'object') {
           return;
         }
         // if key is numeric, pass the current index for locating the root object later on
@@ -149,7 +148,7 @@ var DelegableProxy = function () {
      */
 
   }, {
-    key: "formatProperty",
+    key: 'formatProperty',
     value: function formatProperty(property) {
       if (!isInt(property)) {
         return -1;
@@ -167,7 +166,7 @@ var DelegableProxy = function () {
      */
 
   }, {
-    key: "notifyDelegate",
+    key: 'notifyDelegate',
     value: function notifyDelegate(action, position, isRootObject) {
       if (!isRootObject) {
         action = 'mod';
