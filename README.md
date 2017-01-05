@@ -27,6 +27,10 @@ data.push({'message': 'knock knock!'})
 
 https://runkit.com/586ca4b68acd620014d54362/586ca4b68acd620014d54363
 
+## Known issues
+
+- The way `Array.splice` works, leads to a lot of mutations on inner arrays. Better use the slow `delete foo[42].bar.stuff[0]`.
+
 ## Usage
 
 ```bash
