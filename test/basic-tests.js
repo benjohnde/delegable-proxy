@@ -16,6 +16,7 @@ describe('Basic operations', () => {
     const proxied = DelegableProxy.wire(dataset, dummy)
     expect(dataset).to.deep.equal(proxied)
   })
+
   it('should notify delegate properly after pushing new', done => {
     const delegate = function cb(action, sender) {
       expect(action).to.be.a('string')
@@ -26,6 +27,7 @@ describe('Basic operations', () => {
     const proxied = DelegableProxy.wire(dataset, delegate)
     proxied.push({'barfoo': 'yeap', 'bar': ['1', '2', '3']})
   })
+
   it('should not alter degenerated set', () => {
     const myset = JSON.parse(JSON.stringify(dataset))
     const proxied = DelegableProxy.wire(myset, dummy)
@@ -37,6 +39,7 @@ describe('Basic operations', () => {
     expect(proxied).to.deep.equal(updatedSet)
     expect(proxied).to.not.deep.equal(degeneratedSet)
   })
+
   it('should notify delegate properly after altering an entry', done => {
     const delegate = function cb(action, sender) {
       expect(action).to.be.a('string')
@@ -47,6 +50,7 @@ describe('Basic operations', () => {
     const proxied = DelegableProxy.wire(dataset, delegate)
     proxied[2].ultimate[0].pew = 'POW!'
   })
+
   it('should notify delegate properly after deleting an entry', done => {
     const delegate = function cb(action, sender) {
       expect(action).to.be.a('string')
@@ -56,5 +60,16 @@ describe('Basic operations', () => {
     }
     const proxied = DelegableProxy.wire(dataset, delegate)
     delete proxied[3]
+  })
+
+  it('should not wire a "null" object', done => {
+    let proxied;
+    try {
+      proxied = DelegableProxy.wire(null, () => {})
+    } catch (e) {
+      expect(e).to.be.a('Error')
+      expect(proxied).to.equal(undefined);
+      done()
+    }
   })
 })

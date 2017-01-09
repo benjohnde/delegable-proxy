@@ -11,11 +11,15 @@ export default class DelegableProxy {
    * @param {boolean} shouldClone create a clean clone of the whole data structure
    */
   static wire(object, delegate, shouldClone) {
-    if (shouldClone) {
-      const cloned = JSON.parse(JSON.stringify(object))
-      return new DelegableProxy(cloned, delegate)
+    if (object === null) {
+      throw new Error('Why would one use Proxy with a null object?')
+    } else {
+      if (shouldClone) {
+        const cloned = JSON.parse(JSON.stringify(object))
+        return new DelegableProxy(cloned, delegate)
+      }
+      return new DelegableProxy(object, delegate)
     }
-    return new DelegableProxy(object, delegate)
   }
 
   /**

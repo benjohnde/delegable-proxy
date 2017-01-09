@@ -34,11 +34,15 @@ var DelegableProxy = function () {
      * @param {boolean} shouldClone create a clean clone of the whole data structure
      */
     value: function wire(object, delegate, shouldClone) {
-      if (shouldClone) {
-        var cloned = JSON.parse(JSON.stringify(object));
-        return new DelegableProxy(cloned, delegate);
+      if (object === null) {
+        throw new Error('Why would one use Proxy with a null object?');
+      } else {
+        if (shouldClone) {
+          var cloned = JSON.parse(JSON.stringify(object));
+          return new DelegableProxy(cloned, delegate);
+        }
+        return new DelegableProxy(object, delegate);
       }
-      return new DelegableProxy(object, delegate);
     }
 
     /**
