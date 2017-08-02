@@ -31,6 +31,7 @@ https://runkit.com/586ca4b68acd620014d54362/586ca4b68acd620014d54363
 ## Known issues
 
 - The way `Array.splice` works, leads to a lot of mutations on inner arrays. Better use the slow `delete foo[42].bar.stuff[0]`.
+- We do not recommend to use this library in a production environment. This was just a fun project, some kind of PoC for us. We still use it in a dev environment which is only used internally.
 
 ## Usage
 
