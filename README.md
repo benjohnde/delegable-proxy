@@ -3,6 +3,9 @@
 Multi-level deepened proxy, works sync.
 
 [![Build Status](https://travis-ci.org/benjohnde/delegable-proxy.svg?branch=master)](https://travis-ci.org/benjohnde/delegable-proxy)
+[![npm version](https://badge.fury.io/js/delegable-proxy.svg)](https://badge.fury.io/js/delegable-proxy)
+[![Maintainability](https://api.codeclimate.com/v1/badges/853f4e7f83c9af1a73c5/maintainability)](https://codeclimate.com/github/benjohnde/delegable-proxy/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/853f4e7f83c9af1a73c5/test_coverage)](https://codeclimate.com/github/benjohnde/delegable-proxy/test_coverage)
 
 ## Main purpose
 
